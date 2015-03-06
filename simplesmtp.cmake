@@ -18,9 +18,15 @@ macro    (simplesmtpInit
 
     # compose the list of headers and sources
     set(SIMPLESMTP_HEADERS
+        "smtp.h"
         "simplesmtp.h")
     set(SIMPLESMTP_SOURCES
+        "smtp.cc"
         "simplesmtp.cc")
+    set(SIMPLESMTP_QT_MODS
+        "Core"
+        "Gui"
+        "Network")
 
     pileSetSources(
         "${SIMPLESMTP_INIT_NAME}"
@@ -32,7 +38,7 @@ macro    (simplesmtpInit
         "0;0;1;d"
         "ON"
         "${ref_cnt_use_mode}"
-        ""
+        "UserMsg"
         "category1"
         "tag1;tag2")
 
