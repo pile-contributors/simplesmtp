@@ -11,22 +11,31 @@
 #define GUARD_SIMPLESMTP_H_INCLUDE
 
 #include <simplesmtp/simplesmtp-config.h>
+#include <usermsg/usermsg.h>
+
+#include <QStringList>
 
 //! brief description
 class SIMPLESMTP_EXPORT SimpleSmtp {
 
 public:
 
-    //! Default constructor.
-    SimpleSmtp ();
+    bool init (
+            const QString &user,
+            const QString &pass,
+            const QString &host,
+            int port,
+            int timeout);
 
-    //! Destructor.
-    virtual ~SimpleSmtp();
+    void end ();
 
-protected:
-
-private:
-
+    bool send_mail (
+            UserMsg & um,
+            const QString &to,
+            const QString &subject,
+            const QString &body,
+            bool body_is_html,
+            QStringList files);
 };
 
 #endif // GUARD_SIMPLESMTP_H_INCLUDE
