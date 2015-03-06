@@ -1,0 +1,131 @@
+/**
+ * @file simplesmtp-config.h
+ * @brief The content of this file is dynamically generated at compile time by CMake.
+ * @author Nicu Tofan <nicu.tofan@gmail.com>
+ * @copyright Copyright 2014 piles contributors. All rights reserved.
+ * This file is released under the
+ * [MIT License](http://opensource.org/licenses/mit-license.html)
+ */
+
+#ifndef GUARD_SIMPLESMTP_CONFIG_H_INCLUDE
+#define GUARD_SIMPLESMTP_CONFIG_H_INCLUDE
+
+/**
+ * @def Qt5Core_FOUND
+ * @brief When defined indicates that the Qt 5 headers are available
+ */
+#ifndef Qt5Core_FOUND
+#cmakedefine Qt5Core_FOUND
+#endif
+
+/**
+ * @def Qt4_FOUND
+ * @brief When defined indicates that the Qt 4 headers are available
+ */
+#ifndef Qt4_FOUND
+#cmakedefine Qt4_FOUND
+#endif
+
+/**
+ * @def PILES_HAVE_QT
+ * @brief When defined indicates that either Qt 4 or Qt 5 headers are available
+ */
+#if defined(Qt5Core_FOUND) || defined(Qt4_FOUND)
+#ifndef PILES_HAVE_QT
+#define PILES_HAVE_QT
+#endif
+#endif
+
+// use Qt definitions when available
+#ifdef PILES_HAVE_QT
+#include <QtGlobal>
+#endif
+
+//! the name of this project
+#define SIMPLESMTP_PROJECT_NAME       "@SIMPLESMTP_NAME@"
+
+//! major version (ABI not preserved between these)
+#define SIMPLESMTP_MAJOR_VERSION      (@SIMPLESMTP_MAJOR_VERSION@)
+
+//! minor version; ABI is preserved
+#define SIMPLESMTP_MINOR_VERSION      (@SIMPLESMTP_MINOR_VERSION@)
+
+//! bug fixes
+#define SIMPLESMTP_PATCH_VERSION      (@SIMPLESMTP_PATCH_VERSION@)
+
+//! the version as a 32-bit integer
+#define SIMPLESMTP_VERSION            (\
+    SIMPLESMTP_MAJOR_VERSION * 0x100000 + \
+    SIMPLESMTP_MINOR_VERSION * 0x1000 + \
+    SIMPLESMTP_PATCH_VERSION * 0x1)
+
+//! version as a string
+#define SIMPLESMTP_VERSION_STRING     "@SIMPLESMTP_VERSION_STRING@"
+
+//! when it was build (UTC)
+#define SIMPLESMTP_BUILD_TIME         "@SIMPLESMTP_BUILD_TIME@"
+
+
+/**
+ * @def SIMPLESMTP_DEBUG
+ * @brief Indicates whether the debug features should be enabled or disabled
+ */
+#ifndef SIMPLESMTP_DEBUG
+#  ifdef SIMPLESMTP_FORCE_DEBUG
+#    define SIMPLESMTP_DEBUG 1
+#  else
+#cmakedefine SIMPLESMTP_DEBUG
+#  endif
+#endif
+
+
+/**
+ * @def SIMPLESMTP_STATIC
+ * @brief If defined it indicates a static library being build
+ */
+#cmakedefine SIMPLESMTP_STATIC
+
+/**
+ * @def SIMPLESMTP_PILE
+ * @brief If defined it indicates a pile usage
+ */
+#cmakedefine SIMPLESMTP_PILE
+
+
+/**
+ * @def SIMPLESMTP_SHARED
+ * @brief If defined it indicates a shared library
+ *
+ * SIMPLESMTP_SHARED is defined when building the project
+ * and undefined when a file from another project
+ * includes the file.
+ */
+
+
+/**
+ * @def SIMPLESMTP_EXPORT
+ * @brief makes the sources compatible with all kinds of deployments.
+ */
+#if defined(SIMPLESMTP_STATIC)
+#   define      SIMPLESMTP_EXPORT
+#elif defined(SIMPLESMTP_PILE)
+#   define      SIMPLESMTP_EXPORT      @SIMPLESMTP_EXPORT@
+#elif defined(SIMPLESMTP_SHARED)
+#   ifdef PILES_HAVE_QT
+#       define  SIMPLESMTP_EXPORT      Q_DECL_EXPORT
+#   elif defined(_MSC_VER)
+#       define  SIMPLESMTP_EXPORT      __declspec(dllexport)
+#   else
+#       define  SIMPLESMTP_EXPORT      __attribute__((visibility("default")))
+#   endif
+#else
+#   ifdef PILES_HAVE_QT
+#       define  SIMPLESMTP_EXPORT      Q_DECL_IMPORT
+#   elif defined(_MSC_VER)
+#       define  SIMPLESMTP_EXPORT      __declspec(dllimport)
+#   else
+#       define  SIMPLESMTP_EXPORT      __attribute__((visibility("default")))
+#   endif
+#endif
+
+#endif // GUARD_SIMPLESMTP_CONFIG_H_INCLUDE
