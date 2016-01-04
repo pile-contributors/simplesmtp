@@ -12,23 +12,35 @@
 
 #include <simplesmtp/simplesmtp-config.h>
 
-#if 0
+
+#ifdef TARGET_COMPILER_MSVC
+#   define __func__ __FUNCTION__
+#endif
+
+#if 1
 #    define SIMPLESMTP_DEBUGM printf
 #else
 #    define SIMPLESMTP_DEBUGM black_hole
 #endif
 
-#if 0
+#if 1
 #    define SIMPLESMTP_TRACE_ENTRY printf("SIMPLESMTP ENTRY %s in %s[%d]\n", __func__, __FILE__, __LINE__)
 #else
 #    define SIMPLESMTP_TRACE_ENTRY
 #endif
 
-#if 0
+#if 1
 #    define SIMPLESMTP_TRACE_EXIT printf("SIMPLESMTP EXIT %s in %s[%d]\n", __func__, __FILE__, __LINE__)
 #else
 #    define SIMPLESMTP_TRACE_EXIT
 #endif
+
+/**
+ * @def TMP_A
+ * @brief C style string from QString.
+ * @internal
+ */
+#define TMP_A(__s__) __s__.toLatin1 ().constData ()
 
 
 static inline void black_hole (...)

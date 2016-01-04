@@ -45,7 +45,7 @@ void SimpleSmtp::end ()
 bool SimpleSmtp::send_mail (
         UserMsg & um, const QString &to,
         const QString &subject, const QString &body,
-        bool body_is_html, QStringList files)
+        bool body_is_html, const QStringList & files)
 {
     SIMPLESMTP_TRACE_ENTRY;
     if (uniq_ == NULL) {
@@ -57,6 +57,7 @@ bool SimpleSmtp::send_mail (
     Smtp * sender = new Smtp (*uniq_);
     bool b_ret = sender->sendMail (
                 um, to, subject, body, body_is_html, files);
+
     SIMPLESMTP_TRACE_EXIT;
     return b_ret;
 }

@@ -128,4 +128,9 @@
 #   endif
 #endif
 
+
+//! microsoft compiler or not
+#cmakedefine TARGET_COMPILER_MSVC
+
+
 #endif // GUARD_SIMPLESMTP_CONFIG_H_INCLUDE

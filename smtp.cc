@@ -44,6 +44,7 @@ SOFTWARE.
 /*  INCLUDES    ------------------------------------------------------------ */
 
 #include "smtp.h"
+#include "simplesmtp-private.h"
 
 #include <QAbstractSocket>
 
@@ -78,8 +79,8 @@ Smtp::Smtp(
     pass(pass),
     host(host),
     port(port),
-    state(Close)
-
+    state(Close),
+    ignore_ssl_errors_(true)
 {
     doConnections();
 }
@@ -98,7 +99,8 @@ Smtp::Smtp (const Smtp & other):
     pass(other.pass),
     host(other.host),
     port(other.port),
-    state(Close)
+    state(Close),
+    ignore_ssl_errors_(other.ignore_ssl_errors_)
 {
     doConnections();
 }
@@ -128,7 +130,7 @@ bool Smtp::attachFiles (
 {
     bool b_file_failure = false;
     if (!files.isEmpty()) {
-        qDebug() << "Files to be sent: " << files.size();
+        SIMPLESMTP_DEBUGM ("Files to be sent: %d\n", files.size());
 
         foreach(QString filePath, files) {
             QFile file (filePath);
@@ -154,7 +156,7 @@ bool Smtp::attachFiles (
             message.append("\n");
         }
     } else {
-        qDebug() << "No attachments found";
+        SIMPLESMTP_DEBUGM ("No attachments found\n");
         b_file_failure = true;
     }
 
@@ -212,6 +214,7 @@ bool Smtp::sendMail (
         rcpt = to;
         state = Init;
 
+        //socket->connectToHost (host, port);
         socket->connectToHostEncrypted (host, port);
         if (!socket->waitForConnected (timeout)) {
             um.addErr ( socket->errorString());
@@ -230,28 +233,30 @@ bool Smtp::sendMail (
 void Smtp::sslErrors(QList<QSslError> err_lst)
 {
     foreach(const QSslError & err, err_lst) {
-        qDebug() << "sslError " << err.error ()
-                 << " " << err.errorString ();
+        SIMPLESMTP_DEBUGM ("sslError: %d %s\n", (int)err.error (),
+                 TMP_A(err.errorString ()));
     }
-    socket->ignoreSslErrors ();
+    if (ignore_ssl_errors_) {
+        socket->ignoreSslErrors ();
+    }
 }
 /* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
 void Smtp::stateChanged(QAbstractSocket::SocketState socketState)
 {
-    qDebug() << "stateChanged " << socketState;
+    SIMPLESMTP_DEBUGM ("stateChanged: %d\n", (int)socketState);
 }
 /* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
-void Smtp::errorReceived(QAbstractSocket::SocketError socketError)
+void Smtp::errorReceived (QAbstractSocket::SocketError socketError)
 {
     UserMsg::err (
                 tr("Sending mail failed due to following error (%1): %2")
                 .arg (socketError)
                 .arg (socket->errorString ()));
-    qDebug() << "error " << socketError;
+    SIMPLESMTP_DEBUGM ("smtp error: %d\n", (int)socketError);
 }
 /* ========================================================================= */
 
@@ -259,14 +264,15 @@ void Smtp::errorReceived(QAbstractSocket::SocketError socketError)
 void Smtp::disconnected()
 {
     qDebug() <<"disconneted";
-    qDebug() << "error "  << socket->errorString();
+    SIMPLESMTP_DEBUGM ("smtp disconnected; error: %s\n",
+                       TMP_A(socket->errorString()));
 }
 /* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
 void Smtp::connected()
 {
-    qDebug() << "Connected ";
+    SIMPLESMTP_DEBUGM ("Connected \n");
 }
 /* ========================================================================= */
 
@@ -285,8 +291,8 @@ void Smtp::readyRead()
 
     responseLine.truncate( 3 );
 
-    qDebug() << "Server response code:" <<  responseLine;
-    qDebug() << "Server response: " << response;
+    SIMPLESMTP_DEBUGM ("Server response code: %s\n", TMP_A(responseLine));
+    SIMPLESMTP_DEBUGM ("Server response: %s\n", TMP_A(response));
 
     if ( state == Init && responseLine == "220" ) {
         // banner was okay, let's go on
@@ -298,7 +304,7 @@ void Smtp::readyRead()
         // which makes the SSL handshake for you
         /*} else if (state == Tls && responseLine == "250") {
         // Trying AUTH
-        qDebug() << "STarting Tls";
+        SIMPLESMTP_DEBUGM ("STarting Tls";
         *t << "STARTTLS" << SMTP_NEW_LINE;
         state = HandShake;
     */
@@ -306,7 +312,8 @@ void Smtp::readyRead()
         socket->startClientEncryption();
         if(!socket->waitForEncrypted(timeout))
         {
-            qDebug() << socket->errorString();
+            SIMPLESMTP_DEBUGM ("Wait for encrypted failed: %s\n",
+                               TMP_A(socket->errorString()));
             state = Close;
         }
 
@@ -316,12 +323,12 @@ void Smtp::readyRead()
         state = Auth;
     } else if (state == Auth && responseLine == "250") {
         // Trying AUTH
-        qDebug() << "Auth";
+        SIMPLESMTP_DEBUGM ("SMTP Auth\n");
         *t << "AUTH LOGIN" << SMTP_NEW_LINE;
         state = User;
     } else if (state == User && responseLine == "334") {
         //Trying User
-        qDebug() << "Username";
+        SIMPLESMTP_DEBUGM ("SMTP Username\n");
         //GMAIL is using XOAUTH2 protocol, which basically means that password
         // and username has to be sent in base64 coding
         //https://developers.google.com/gmail/xoauth2_protocol
@@ -330,7 +337,7 @@ void Smtp::readyRead()
         state = Pass;
     } else if (state == Pass && responseLine == "334") {
         //Trying pass
-        qDebug() << "Pass";
+        SIMPLESMTP_DEBUGM ("SMTP Pass\n");
         *t << QByteArray().append(pass).toBase64() << SMTP_NEW_LINE;
 
         state = Mail;
@@ -339,7 +346,7 @@ void Smtp::readyRead()
 
         //Apperantly for Google it is mandatory to have MAIL FROM and RCPT
         //email formated the following way -> <email@gmail.com>
-        qDebug() << "MAIL FROM:<" << user << ">";
+        SIMPLESMTP_DEBUGM ("SMTP MAIL FROM:<%s>\n", TMP_A(user));
         *t << "MAIL FROM:<" << user << ">" SMTP_NEW_LINE;
         state = Rcpt;
     } else if ( state == Rcpt && responseLine == "250" ) {

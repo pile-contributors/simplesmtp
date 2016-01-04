@@ -35,7 +35,7 @@ public:
             const QString &subject,
             const QString &body,
             bool body_is_html,
-            QStringList files);
+            const QStringList & files = QStringList());
 };
 
 #endif // GUARD_SIMPLESMTP_H_INCLUDE

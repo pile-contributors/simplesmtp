@@ -121,6 +121,7 @@ private:
     QString host;
     int port;
     int state;
+    bool ignore_ssl_errors_;
 
     /*  DATA    ============================================================ */
     //
